@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>agnocast_eval</name>
+  <version>0.1.0</version>
+  <description>
+    Memory-usage evaluation nodes comparing Agnocast zero-copy IPC against standard
+    ROS 2 (rclcpp/DDS): a publisher and a message-holding subscriber for each path.
+  </description>
+  <maintainer email="Mcleroysane19@inha.edu">eval</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>agnocastlib</depend>
+  <depend>agnocast_sample_interfaces</depend>
+
+  <exec_depend>ros2agnocast_discovery_agent</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
