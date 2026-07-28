@@ -118,10 +118,33 @@ unsafe impl SharedMemoryAllocator for TLSFAllocator {
     fn deallocate(&self, ptr: NonNull<u8>) {
         // get the original pointer
         // SAFETY: `ptr` must have been allocated by `allocate` or `reallocate`.
-        let original_ptr = unsafe { *ptr.as_ptr().byte_sub(POINTER_SIZE).cast() };
+        let original_ptr: NonNull<u8> = unsafe { *ptr.as_ptr().byte_sub(POINTER_SIZE).cast() };
 
         let mut tlsf = self.inner.lock().unwrap();
+
+        // Read the block's physical end before deallocating (required by the contract of
+        // `allocation_usable_size`), then return the block's interior pages to the kernel.
+        // SAFETY: `original_ptr` is a block currently allocated via this allocator.
+        let block_end =
+            original_ptr.as_ptr() as usize + unsafe { TlsfType::allocation_usable_size(original_ptr) };
+
         unsafe { tlsf.deallocate(original_ptr, LAYOUT_ALIGN) }
+
+        // The lock is still held, so the freed pages cannot be handed back out before we
+        // punch them (which would zero a live allocation).
+        crate::reclaim::reclaim_pages(original_ptr.as_ptr() as usize, block_end);
+    }
+}
+
+#[cfg(test)]
+impl TLSFAllocator {
+    /// Build an allocator over an existing `'static` pool region (test helper).
+    pub(crate) fn from_pool(pool: &'static mut [MaybeUninit<u8>]) -> Self {
+        let mut tlsf: TlsfType = Tlsf::new();
+        tlsf.insert_free_block(pool);
+        Self {
+            inner: Mutex::new(tlsf),
+        }
     }
 }
 
@@ -147,11 +170,7 @@ mod tests {
         // SAFETY: mmap'd memory lives until munmap; we intentionally leak it for 'static.
         let pool: &'static mut [MaybeUninit<u8>] =
             unsafe { std::slice::from_raw_parts_mut(pool_ptr as *mut MaybeUninit<u8>, pool_size) };
-        let mut tlsf: TlsfType = Tlsf::new();
-        tlsf.insert_free_block(pool);
-        TLSFAllocator {
-            inner: Mutex::new(tlsf),
-        }
+        TLSFAllocator::from_pool(pool)
     }
 
     fn get_offset(ptr: NonNull<u8>) -> usize {

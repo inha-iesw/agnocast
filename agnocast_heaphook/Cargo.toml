@@ -16,4 +16,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 libc = "0.2"
-rlsf = "0.2"
+# `unstable` exposes `allocation_usable_size`, used to find a freed block's extent for
+# physical-page reclaim (see src/reclaim.rs). Pinned+vendored, so the unstable API is safe.
+rlsf = { version = "0.2", features = ["unstable"] }

@@ -39,6 +39,7 @@ static RESOLVE_START_MAIN: extern "C" fn() = {
     init
 };
 
+mod reclaim;
 mod tlsf;
 
 /// Version string exported as a C-compatible symbol for external querying.
