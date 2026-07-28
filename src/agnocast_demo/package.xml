@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>agnocast_demo</name>
+  <version>0.1.0</version>
+  <description>
+    Minimal zero-copy publisher/subscriber example for Agnocast: demo_talker writes a
+    message directly in shared memory and demo_listener reads the same bytes in another
+    process, verifying the payload address lies in the shared pool (no copy).
+  </description>
+  <maintainer email="Mcleroysane19@inha.edu">demo</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>agnocastlib</depend>
+  <depend>agnocast_sample_interfaces</depend>
+
+  <exec_depend>ros2launch</exec_depend>
+  <exec_depend>ros2agnocast_discovery_agent</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
